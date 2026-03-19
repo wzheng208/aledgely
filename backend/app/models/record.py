@@ -20,4 +20,6 @@ class Record(db.Model):
     date = db.Column(db.Date, nullable=False)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
+    # ✅ ADD THIS
+    category = db.relationship("Category", backref="records")

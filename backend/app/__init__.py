@@ -4,11 +4,7 @@ from dotenv import load_dotenv
 from app.logger import setup_logger
 import os
 
-from app.models.user import User
-from app.models.category import Category
-from app.models.record import Record
-from app.routes.records import records_bp
-
+from app.modules.records.routes import records_bp
 
 def create_app():
     load_dotenv()
@@ -23,6 +19,7 @@ def create_app():
 
     db.init_app(app)
 
-    app.register_blueprint(records_bp, url_prefix="/records")
+    # Register blueprint (this activates your routes)
+    app.register_blueprint(records_bp)
 
     return app
