@@ -121,3 +121,48 @@ def get_summary_by_category():
     except Exception as e:
         current_app.logger.error(str(e))
         return jsonify({"error": "Failed to fetch category summary"}), 500
+    
+@records_bp.route("/summary/totals", methods=["GET"])
+def get_summary_totals():
+    print("HIT /records/summary/totals")
+    print("args:", request.args)
+    print("cookies:", request.cookies)
+    print("origin:", request.headers.get("Origin"))
+    print("method:", request.method)
+    try:
+        params = schema.load(request.args)
+
+        result = RecordService.get_summary_totals(
+            user_id=params["user_id"],
+            start_date=params.get("start_date"),
+            end_date=params.get("end_date"),
+        )
+
+        return jsonify(result), 200
+
+    except ValidationError as err:
+        return jsonify({"error": err.messages}), 400
+
+    except Exception as e:
+        current_app.logger.error(str(e))
+        return jsonify({"error": "Failed to fetch summary totals"}), 500
+
+@records_bp.route("/summary/trends", methods=["GET"])
+def get_summary_trends():
+    try:
+        params = schema.load(request.args)
+
+        result = RecordService.get_summary_trends(
+            user_id=params["user_id"],
+            start_date=params.get("start_date"),
+            end_date=params.get("end_date"),
+        )
+
+        return jsonify(result), 200
+
+    except ValidationError as err:
+        return jsonify({"error": err.messages}), 400
+
+    except Exception as e:
+        current_app.logger.error(str(e))
+        return jsonify({"error": "Failed to fetch summary trends"}), 500

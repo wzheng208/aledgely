@@ -3,6 +3,8 @@ from app.models.record import Record
 from app.models.category import Category
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func
+from collections import defaultdict
+from app.models.record import Record
 
 
 VALID_TYPES = ["expense", "income", "mileage"]
@@ -228,5 +230,87 @@ class RecordService:
 
         if isinstance(limit, int):
             result = result[:limit]
+
+        return result
+    
+    @staticmethod
+    def get_summary_totals(user_id, start_date=None, end_date=None):
+        if not user_id:
+            raise ValueError("user_id is required")
+
+        query = Record.query.filter(Record.user_id == user_id)
+
+        if start_date:
+            query = query.filter(Record.date >= start_date)
+
+        if end_date:
+            query = query.filter(Record.date <= end_date)
+
+        income_total = (
+            query.filter(Record.type == "income")
+            .with_entities(func.coalesce(func.sum(Record.amount), 0))
+            .scalar()
+        )
+
+        expense_total = (
+            query.filter(Record.type == "expense")
+            .with_entities(func.coalesce(func.sum(Record.amount), 0))
+            .scalar()
+        )
+
+        mileage_total = (
+            query.filter(Record.type == "mileage")
+            .with_entities(func.coalesce(func.sum(Record.amount), 0))
+            .scalar()
+        )
+
+        return {
+            "total_income": float(income_total or 0),
+            "total_expenses": float(expense_total or 0),
+            "total_mileage": float(mileage_total or 0),
+            "net_profit": float((income_total or 0) - (expense_total or 0)),
+        }
+
+    @staticmethod
+    def get_summary_trends(user_id, start_date=None, end_date=None):
+        if not user_id:
+            raise ValueError("user_id is required")
+
+        query = Record.query.filter(Record.user_id == user_id)
+
+        if start_date:
+            query = query.filter(Record.date >= start_date)
+
+        if end_date:
+            query = query.filter(Record.date <= end_date)
+
+        records = query.all()
+
+        grouped = defaultdict(lambda: {
+            "income": 0.0,
+            "expense": 0.0,
+        })
+
+        for record in records:
+            day = record.date.isoformat()
+
+            if record.type == "income":
+                grouped[day]["income"] += float(record.amount or 0)
+
+            elif record.type == "expense":
+                grouped[day]["expense"] += float(record.amount or 0)
+
+        result = []
+
+        for day in sorted(grouped.keys()):
+            income = grouped[day]["income"]
+            expense = grouped[day]["expense"]
+
+            result.append({
+                "date": day,
+                "income": income,
+                "expense": expense,
+                "net": income - expense,
+            })
 
         return result

@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from .db import db
 from dotenv import load_dotenv
 from app.logger import setup_logger
@@ -10,6 +11,7 @@ def create_app():
     load_dotenv()
 
     app = Flask(__name__)
+    CORS(app, origins=["http://localhost:5173"])
 
     logger = setup_logger()
     app.logger = logger
