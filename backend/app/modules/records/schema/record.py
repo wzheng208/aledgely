@@ -2,7 +2,6 @@ from marshmallow import Schema, fields, validate, validates_schema, ValidationEr
 
 
 class RecordSchema(Schema):
-    user_id = fields.Int(required=True)
     type = fields.Str(
         required=True,
         validate=validate.OneOf(["expense", "income", "mileage"])

@@ -15,11 +15,6 @@ class DateRangeSchema(Schema):
                 "end_date": ["end_date must be on or after start_date"]
             })
 
-
-class UserQuerySchema(Schema):
-    user_id = fields.Int(required=True)
-
-
 class PaginationSchema(Schema):
     limit = fields.Int(load_default=10, validate=validate.Range(min=1))
     offset = fields.Int(load_default=0, validate=validate.Range(min=0))

@@ -1,11 +1,10 @@
+from flask import g
 from app.db import db
 from app.models.record import Record
 from app.models.category import Category
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func
 from collections import defaultdict
-from app.models.record import Record
-
 
 VALID_TYPES = ["expense", "income", "mileage"]
 
@@ -13,8 +12,21 @@ VALID_TYPES = ["expense", "income", "mileage"]
 class RecordService:
 
     @staticmethod
-    def create_record(data):
-        record = Record(**data)
+    def _current_user_id() -> int:
+        """Retrieve the authenticated user's ID from the request context."""
+        if not hasattr(g, 'current_user_id'):
+            raise RuntimeError("This endpoint requires authentication")
+        return g.current_user_id
+
+    @staticmethod
+    def create_record(data: dict):
+        user_id = RecordService._current_user_id()
+
+        # Prevent client from forcing a different user_id
+        record_data = data.copy()
+        record_data.pop('user_id', None)  # silently remove if present
+
+        record = Record(user_id=user_id, **record_data)
 
         db.session.add(record)
         db.session.commit()
@@ -22,9 +34,16 @@ class RecordService:
         return record
 
     @staticmethod
-    def get_records(user_id, type=None, start_date=None, end_date=None, limit=10, offset=0, sort="date", order="desc"):
-        if not user_id:
-            raise ValueError("user_id is required")
+    def get_records(
+        type=None,
+        start_date=None,
+        end_date=None,
+        limit=10,
+        offset=0,
+        sort="date",
+        order="desc"
+    ):
+        user_id = RecordService._current_user_id()
 
         query = (
             Record.query
@@ -32,44 +51,48 @@ class RecordService:
             .filter_by(user_id=user_id)
         )
 
-        # ✅ Filter by type
         if type:
             query = query.filter(Record.type == type)
 
-        # ✅ Filter by date range
         if start_date:
             query = query.filter(Record.date >= start_date)
 
         if end_date:
             query = query.filter(Record.date <= end_date)
-        
-        # ✅ Sorting (SAFE)
+
+        # Safe sorting
         sortable_fields = {
             "date": Record.date,
             "amount": Record.amount,
+            "miles": Record.miles,
             "created_at": Record.created_at
         }
 
         sort_column = sortable_fields.get(sort)
-
         if not sort_column:
-            raise ValueError("Invalid sort field")
+            raise ValueError(f"Invalid sort field: {sort}")
 
-        if order == "desc":
+        if order.lower() == "desc":
             query = query.order_by(sort_column.desc())
         else:
             query = query.order_by(sort_column.asc())
 
-        query = query.limit(limit).offset(offset)
+        query = query.offset(offset).limit(limit)
 
         return query.all()
 
     @staticmethod
-    def update_record(record_id, data):
-        record = Record.query.get(record_id)
+    def update_record(record_id: int, data: dict):
+        user_id = RecordService._current_user_id()
 
+        # Enforce ownership
+        record = (
+            Record.query
+            .filter_by(id=record_id, user_id=user_id)
+            .first()
+        )
         if not record:
-            raise LookupError("Record not found")
+            raise LookupError("Record not found or access denied")
 
         # Type validation
         if "type" in data:
@@ -80,84 +103,68 @@ class RecordService:
         # Category validation
         if "category_id" in data:
             category = Category.query.get(data["category_id"])
-
             if not category:
                 raise ValueError("Invalid category_id")
 
             record_type = data.get("type", record.type)
-
             if category.type != record_type:
                 raise ValueError("Category type does not match record type")
 
             record.category_id = data["category_id"]
 
-        # Update fields
-        if "amount" in data:
-            record.amount = data["amount"]
-
-        if "miles" in data:
-            record.miles = data["miles"]
-
-        if "notes" in data:
-            record.notes = data["notes"]
-
-        if "date" in data:
-            record.date = data["date"]
+        # Update allowed fields
+        for field in ["amount", "miles", "notes", "date"]:
+            if field in data:
+                setattr(record, field, data[field])
 
         db.session.commit()
-
         return record
 
     @staticmethod
-    def delete_record(record_id):
-        record = Record.query.get(record_id)
+    def delete_record(record_id: int):
+        user_id = RecordService._current_user_id()
 
+        record = Record.query.filter_by(id=record_id, user_id=user_id).first()
         if not record:
-            raise LookupError("Record not found")
+            raise LookupError("Record not found or access denied")
 
         db.session.delete(record)
         db.session.commit()
 
     @staticmethod
-    def get_summary(user_id):
-        if not user_id:
-            raise ValueError("user_id is required")
-        
-        #Total Expense
+    def get_summary():
+        user_id = RecordService._current_user_id()
+
         total_expense = (
             db.session.query(func.sum(Record.amount))
             .filter(Record.user_id == user_id, Record.type == "expense")
-            .scalar()   
-        ) or 0
+            .scalar() or 0
+        )
 
-         # Total income
         total_income = (
             db.session.query(func.sum(Record.amount))
             .filter(Record.user_id == user_id, Record.type == "income")
-            .scalar()
-        ) or 0
+            .scalar() or 0
+        )
 
-        # Total mileage
         total_mileage = (
             db.session.query(func.sum(Record.miles))
             .filter(Record.user_id == user_id, Record.type == "mileage")
-            .scalar()
-        ) or 0
+            .scalar() or 0
+        )
 
-        # ✅ Derived metric
         profit = total_income - total_expense
 
         return {
-            "total_income": total_income,
-            "total_expense": total_expense,
-            "profit": profit,
-            "total_mileage": total_mileage
+            "total_income": float(total_income),
+            "total_expense": float(total_expense),
+            "profit": float(profit),
+            "total_mileage": float(total_mileage)
         }
 
     @staticmethod
-    def get_summary_by_category(user_id, limit=None, start_date=None, end_date=None):        
-        if not user_id:
-            raise ValueError("user_id is required")
+    def get_summary_by_category(limit=None, start_date=None, end_date=None):
+        user_id = RecordService._current_user_id()
 
         expense = RecordService._get_category_breakdown(
             user_id=user_id,
@@ -188,7 +195,7 @@ class RecordService:
             "income": income,
             "mileage": mileage
         }
-    
+
     @staticmethod
     def _get_category_breakdown(user_id, record_type, limit=None, start_date=None, end_date=None):
         value_column = Record.miles if record_type == "mileage" else Record.amount
@@ -219,7 +226,6 @@ class RecordService:
 
         for name, total in data:
             value = float(total or 0)
-
             result.append({
                 "category": name or "Uncategorized",
                 "total": value,
@@ -228,15 +234,14 @@ class RecordService:
 
         result.sort(key=lambda x: x["total"], reverse=True)
 
-        if isinstance(limit, int):
+        if limit is not None:
             result = result[:limit]
 
         return result
-    
+
     @staticmethod
-    def get_summary_totals(user_id, start_date=None, end_date=None):
-        if not user_id:
-            raise ValueError("user_id is required")
+    def get_summary_totals(start_date=None, end_date=None):
+        user_id = RecordService._current_user_id()
 
         query = Record.query.filter(Record.user_id == user_id)
 
@@ -260,7 +265,7 @@ class RecordService:
 
         mileage_total = (
             query.filter(Record.type == "mileage")
-            .with_entities(func.coalesce(func.sum(Record.amount), 0))
+            .with_entities(func.coalesce(func.sum(Record.miles), 0))  # ← fixed: miles, not amount
             .scalar()
         )
 
@@ -272,9 +277,8 @@ class RecordService:
         }
 
     @staticmethod
-    def get_summary_trends(user_id, start_date=None, end_date=None):
-        if not user_id:
-            raise ValueError("user_id is required")
+    def get_summary_trends(start_date=None, end_date=None):
+        user_id = RecordService._current_user_id()
 
         query = Record.query.filter(Record.user_id == user_id)
 
@@ -286,26 +290,19 @@ class RecordService:
 
         records = query.all()
 
-        grouped = defaultdict(lambda: {
-            "income": 0.0,
-            "expense": 0.0,
-        })
+        grouped = defaultdict(lambda: {"income": 0.0, "expense": 0.0})
 
         for record in records:
             day = record.date.isoformat()
-
             if record.type == "income":
                 grouped[day]["income"] += float(record.amount or 0)
-
             elif record.type == "expense":
                 grouped[day]["expense"] += float(record.amount or 0)
 
         result = []
-
         for day in sorted(grouped.keys()):
             income = grouped[day]["income"]
             expense = grouped[day]["expense"]
-
             result.append({
                 "date": day,
                 "income": income,
