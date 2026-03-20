@@ -10,7 +10,8 @@ import os
 
 # Import your blueprints
 from app.modules.records.routes import records_bp
-from app.modules.auth.routes import auth_bp      # ← add this (your auth blueprint)
+from app.modules.auth.routes import auth_bp 
+from app.modules.categories.routes import categories_bp  
 
 def create_app():
     load_dotenv()
@@ -69,6 +70,7 @@ def create_app():
     # Register all blueprints
     app.register_blueprint(auth_bp)      # ← add this
     app.register_blueprint(records_bp)
+    app.register_blueprint(categories_bp)
     # Register future blueprints here, e.g. categories_bp, dashboard_bp, etc.
 
     return app
