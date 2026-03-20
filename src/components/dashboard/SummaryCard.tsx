@@ -19,9 +19,11 @@ export function SummaryCard({
   tone = 'income',
 }: SummaryCardProps) {
   return (
-    <Card className='shadow-sm border border-slate-200 bg-white hover:shadow-md transition'>
+    <Card className='rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md'>
+      {' '}
       <CardHeader className='flex flex-row items-start justify-between space-y-0 pb-3'>
-        <CardTitle className='text-sm font-medium text-slate-500'>
+        <CardTitle className='text-sm font-medium text-slate-400'>
+          {' '}
           {title}
         </CardTitle>
 
@@ -31,7 +33,6 @@ export function SummaryCard({
           Summary
         </span>
       </CardHeader>
-
       <CardContent>
         <div className='text-3xl font-semibold tracking-tight text-slate-900'>
           {value}

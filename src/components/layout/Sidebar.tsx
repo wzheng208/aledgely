@@ -33,25 +33,24 @@ export function Sidebar() {
   };
 
   return (
-    <aside className='flex h-screen w-64 flex-col border-r border-slate-200 bg-white'>
-      <div className='px-6 py-6'>
+    <aside className='flex h-full w-64 flex-col bg-slate-900 px-4 py-5 text-white'>
+      {' '}
+      <div className='px-4 py-5'>
         <div className='flex items-center gap-3'>
-          <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-sm font-semibold text-white'>
+          <div className='flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-800 text-sm font-semibold text-slate-100 ring-1 ring-white/10'>
             A
           </div>
 
           <div>
-            <h1 className='text-lg font-semibold tracking-tight text-slate-900'>
+            <h1 className='text-lg font-semibold tracking-tight text-slate-50'>
               Aledgely
             </h1>
-            <p className='text-xs text-slate-500'>Business tracking</p>
+            <p className='text-xs text-slate-400'>Business tracking</p>
           </div>
         </div>
       </div>
-
-      <Separator />
-
-      <nav className='flex-1 px-4 py-4'>
+      <Separator className='bg-white/10' />
+      <nav className='flex-1 px-2 py-4'>
         <div className='space-y-2'>
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -60,12 +59,20 @@ export function Sidebar() {
             return (
               <Button
                 key={item.label}
-                variant={isActive ? 'secondary' : 'ghost'}
-                className='h-11 w-full justify-start gap-3 text-sm'
+                variant='ghost'
+                className={`h-11 w-full justify-start gap-3 rounded-xl px-3 text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-slate-800 text-slate-50 shadow-sm hover:bg-slate-800'
+                    : 'text-slate-300 hover:bg-white/5 hover:text-slate-50'
+                }`}
                 asChild
               >
                 <Link to={item.href}>
-                  <Icon className='h-4 w-4' />
+                  <Icon
+                    className={`h-4 w-4 ${
+                      isActive ? 'text-slate-100' : 'text-slate-400'
+                    }`}
+                  />
                   <span>{item.label}</span>
                 </Link>
               </Button>
@@ -73,12 +80,11 @@ export function Sidebar() {
           })}
         </div>
       </nav>
-
       <div className='px-4 py-4'>
-        <Separator className='mb-4' />
+        <Separator className='mb-4 bg-white/10' />
         <Button
           variant='ghost'
-          className='h-11 w-full justify-start gap-3 text-sm text-red-600 hover:bg-red-50 hover:text-red-700'
+          className='h-11 w-full justify-start gap-3 rounded-xl px-3 text-sm text-red-300 hover:bg-red-500/10 hover:text-red-200'
           onClick={handleLogout}
         >
           <LogOut className='h-4 w-4' />
@@ -88,3 +94,5 @@ export function Sidebar() {
     </aside>
   );
 }
+
+

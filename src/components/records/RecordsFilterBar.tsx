@@ -78,8 +78,6 @@ export function RecordsFilterBar({
           >
             <option value='date'>Date</option>
             <option value='amount'>Amount</option>
-            <option value='miles'>Miles</option>
-            <option value='created_at'>Created</option>
           </select>
         </div>
 
