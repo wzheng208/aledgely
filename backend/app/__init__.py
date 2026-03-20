@@ -25,8 +25,12 @@ def create_app():
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 3600 * 24 * 7
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-    CORS(app, origins=[frontend_url])
+    allowed_origins = os.getenv(
+        "FRONTEND_URLS",
+        "http://localhost:5173,https://aledgely.vercel.app"
+    ).split(",")
+
+    CORS(app, origins=[origin.strip() for origin in allowed_origins])
 
     logger = setup_logger()
     app.logger = logger
