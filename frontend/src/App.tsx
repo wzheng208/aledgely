@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import DashboardPage from '@/pages/DashboardPage';
@@ -25,7 +26,6 @@ export default function App() {
           path='/login'
           element={<LoginPage />}
         />
-
         <Route
           path='/register'
           element={<RegisterPage />}
@@ -52,6 +52,8 @@ export default function App() {
           />
         </Route>
       </Routes>
+
+      <Analytics />
     </BrowserRouter>
   );
 }
