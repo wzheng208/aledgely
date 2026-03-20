@@ -5,7 +5,7 @@ import { clearAuth } from '@/lib/auth-storage';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
-const navItems = [
+const menuItems = [
   {
     label: 'Dashboard',
     href: '/dashboard',
@@ -16,12 +16,64 @@ const navItems = [
     href: '/records',
     icon: FolderKanban,
   },
+];
+
+const generalItems = [
   {
     label: 'Settings',
     href: '/settings',
     icon: Settings,
   },
 ];
+
+type NavSectionProps = {
+  title: string;
+  items: {
+    label: string;
+    href: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }[];
+  pathname: string;
+};
+
+function NavSection({ title, items, pathname }: NavSectionProps) {
+  return (
+    <div>
+      <p className='mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500'>
+        {title}
+      </p>
+
+      <div className='space-y-2'>
+        {items.map((item) => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href;
+
+          return (
+            <Button
+              key={item.label}
+              variant='ghost'
+              className={`h-11 w-full justify-start gap-3 rounded-xl px-3 text-sm font-medium transition ${
+                isActive
+                  ? 'bg-slate-800 text-slate-50 shadow-sm hover:bg-slate-800'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-slate-50'
+              }`}
+              asChild
+            >
+              <Link to={item.href}>
+                <Icon
+                  className={`h-4 w-4 ${
+                    isActive ? 'text-slate-100' : 'text-slate-400'
+                  }`}
+                />
+                <span>{item.label}</span>
+              </Link>
+            </Button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export function Sidebar() {
   const navigate = useNavigate();
@@ -34,7 +86,6 @@ export function Sidebar() {
 
   return (
     <aside className='flex h-full w-64 flex-col bg-slate-900 px-4 py-5 text-white'>
-      {' '}
       <div className='px-4 py-5'>
         <div className='flex items-center gap-3'>
           <div className='flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-800 text-sm font-semibold text-slate-100 ring-1 ring-white/10'>
@@ -49,37 +100,25 @@ export function Sidebar() {
           </div>
         </div>
       </div>
-      <Separator className='bg-white/10' />
-      <nav className='flex-1 px-2 py-4'>
-        <div className='space-y-2'>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.href;
 
-            return (
-              <Button
-                key={item.label}
-                variant='ghost'
-                className={`h-11 w-full justify-start gap-3 rounded-xl px-3 text-sm font-medium transition ${
-                  isActive
-                    ? 'bg-slate-800 text-slate-50 shadow-sm hover:bg-slate-800'
-                    : 'text-slate-300 hover:bg-white/5 hover:text-slate-50'
-                }`}
-                asChild
-              >
-                <Link to={item.href}>
-                  <Icon
-                    className={`h-4 w-4 ${
-                      isActive ? 'text-slate-100' : 'text-slate-400'
-                    }`}
-                  />
-                  <span>{item.label}</span>
-                </Link>
-              </Button>
-            );
-          })}
+      <Separator className='bg-white/10' />
+
+      <div className='flex-1 overflow-y-auto px-2 py-4'>
+        <div className='space-y-8'>
+          <NavSection
+            title='Menu'
+            items={menuItems}
+            pathname={location.pathname}
+          />
+
+          <NavSection
+            title='General'
+            items={generalItems}
+            pathname={location.pathname}
+          />
         </div>
-      </nav>
+      </div>
+
       <div className='px-4 py-4'>
         <Separator className='mb-4 bg-white/10' />
         <Button
@@ -94,5 +133,3 @@ export function Sidebar() {
     </aside>
   );
 }
-
-
