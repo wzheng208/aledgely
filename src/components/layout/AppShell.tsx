@@ -1,30 +1,16 @@
-import { ReactNode } from 'react';
+import { Outlet } from 'react-router-dom';
+import { Sidebar } from '@/components/layout/Sidebar';
 
-type AppShellProps = {
-  children: ReactNode;
-};
-
-export function AppShell({ children }: AppShellProps) {
+export function AppShell() {
   return (
-    <div className='min-h-screen bg-muted/40 text-foreground'>
+    <div className='min-h-screen bg-slate-100 text-slate-900'>
       <div className='flex min-h-screen'>
-        <aside className='hidden w-64 border-r bg-background md:flex md:flex-col'>
-          <div className='border-b px-6 py-5'>
-            <h1 className='text-2xl font-semibold tracking-tight'>Aledgely</h1>
-            <p className='mt-1 text-sm text-muted-foreground'>
-              Track income, expenses, and mileage
-            </p>
+        <Sidebar />
+
+        <main className='flex-1 p-8'>
+          <div className='mx-auto max-w-7xl'>
+            <Outlet />
           </div>
-
-          <nav className='flex-1 px-4 py-4'>
-            <button className='w-full rounded-lg bg-muted px-3 py-2 text-left text-sm font-medium'>
-              Dashboard
-            </button>
-          </nav>
-        </aside>
-
-        <main className='flex-1'>
-          <div className='mx-auto max-w-6xl p-6 md:p-8'>{children}</div>
         </main>
       </div>
     </div>
