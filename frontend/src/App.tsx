@@ -57,3 +57,5 @@ export default function App() {
     </BrowserRouter>
   );
 }
+
+//Redeploying for analytics after enabling on vercel
