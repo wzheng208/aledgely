@@ -5,46 +5,39 @@ import type {
   SummaryTrendItem,
 } from '@/types/summary';
 
-export async function getSummaryTotals(): Promise<SummaryTotalsResponse> {
+export type SummaryParams = {
+  start_date?: string;
+  end_date?: string;
+};
+
+export async function getSummaryTotals(
+  params?: SummaryParams,
+): Promise<SummaryTotalsResponse> {
   const response = await apiClient.get<SummaryTotalsResponse>(
     '/records/summary/totals',
-    {
-      params: {
-        user_id: 1,
-        start_date: '2026-03-01',
-        end_date: '2026-03-31',
-      },
-    },
+    { params },
   );
 
   return response.data;
 }
 
-export async function getCategorySummary(): Promise<CategorySummaryResponse> {
+export async function getCategorySummary(
+  params?: SummaryParams,
+): Promise<CategorySummaryResponse> {
   const response = await apiClient.get<CategorySummaryResponse>(
     '/records/summary/category',
-    {
-      params: {
-        user_id: 1,
-        start_date: '2026-03-01',
-        end_date: '2026-03-31',
-      },
-    },
+    { params },
   );
 
   return response.data;
 }
 
-export async function getSummaryTrends(): Promise<SummaryTrendItem[]> {
+export async function getSummaryTrends(
+  params?: SummaryParams,
+): Promise<SummaryTrendItem[]> {
   const response = await apiClient.get<SummaryTrendItem[]>(
     '/records/summary/trends',
-    {
-      params: {
-        user_id: 1,
-        start_date: '2026-03-01',
-        end_date: '2026-03-31',
-      },
-    },
+    { params },
   );
 
   return response.data;
