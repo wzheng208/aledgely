@@ -3,6 +3,7 @@ import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import DashboardPage from '@/pages/DashboardPage';
 import RecordsPage from '@/pages/RecordsPage';
+import SettingsPage from '@/pages/SettingsPage';
 import ProtectedRoute from '@/components/auth/ProtectRoute';
 import { AppShell } from '@/components/layout/AppShell';
 
@@ -44,6 +45,10 @@ export default function App() {
           <Route
             path='/records'
             element={<RecordsPage />}
+          />
+          <Route
+            path='/settings'
+            element={<SettingsPage />}
           />
         </Route>
       </Routes>

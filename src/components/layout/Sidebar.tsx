@@ -1,4 +1,4 @@
-import { BarChart3, FolderKanban, LogOut } from 'lucide-react';
+import { BarChart3, FolderKanban, LogOut, Settings } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { clearAuth } from '@/lib/auth-storage';
@@ -15,6 +15,11 @@ const navItems = [
     label: 'Records',
     href: '/records',
     icon: FolderKanban,
+  },
+  {
+    label: 'Settings',
+    href: '/settings',
+    icon: Settings,
   },
 ];
 
