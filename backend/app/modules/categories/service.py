@@ -1,5 +1,7 @@
 from flask import g
-from app.extensions import db
+from sqlalchemy import or_
+
+from app.db import db
 from app.models.category import Category
 
 VALID_CATEGORY_TYPES = {"income", "expense", "mileage"}
@@ -16,7 +18,9 @@ class CategoryService:
     def get_categories(category_type=None):
         user_id = CategoryService._current_user_id()
 
-        query = Category.query.filter_by(user_id=user_id)
+        query = Category.query.filter(
+            or_(Category.user_id == user_id, Category.user_id.is_(None))
+        )
 
         if category_type:
             query = query.filter(Category.type == category_type)
@@ -33,11 +37,15 @@ class CategoryService:
         if category_type not in VALID_CATEGORY_TYPES:
             raise ValueError("Invalid category type")
 
-        existing = Category.query.filter_by(
-            user_id=user_id,
-            name=name,
-            type=category_type
-        ).first()
+        existing = (
+            Category.query
+            .filter(
+                Category.user_id == user_id,
+                Category.name == name,
+                Category.type == category_type
+            )
+            .first()
+        )
 
         if existing:
             raise ValueError("A category with this name already exists for this type")
@@ -65,13 +73,11 @@ class CategoryService:
         if not category:
             raise LookupError("Category not found or access denied")
 
-        new_name = data.get("name", category.name)
+        new_name = data.get("name", category.name).strip()
         new_type = data.get("type", category.type)
 
         if new_type not in VALID_CATEGORY_TYPES:
             raise ValueError("Invalid category type")
-
-        new_name = new_name.strip()
 
         existing = (
             Category.query

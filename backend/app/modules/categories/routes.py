@@ -20,6 +20,8 @@ def serialize_category(category):
         "id": category.id,
         "name": category.name,
         "type": category.type,
+        "user_id": category.user_id,
+        "is_system": category.user_id is None,
     }
 
 
