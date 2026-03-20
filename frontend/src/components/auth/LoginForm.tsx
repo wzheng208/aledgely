@@ -29,21 +29,26 @@ export function LoginForm() {
       await login(form);
       navigate('/dashboard');
     } catch {
-      // error handled in hook
+      // handled in hook
     }
   };
 
   return (
     <AuthCard
       title='Welcome back'
-      description='Login to continue to Alegdely'
+      description='Sign in to continue managing your business in Aledgely.'
     >
       <form
         onSubmit={handleSubmit}
-        className='space-y-4'
+        className='space-y-5'
       >
         <div className='space-y-2'>
-          <Label htmlFor='email'>Email</Label>
+          <Label
+            htmlFor='email'
+            className='text-sm font-medium text-slate-200'
+          >
+            Email
+          </Label>
           <Input
             id='email'
             name='email'
@@ -51,11 +56,17 @@ export function LoginForm() {
             value={form.email}
             onChange={handleChange}
             placeholder='you@example.com'
+            className='h-11 rounded-xl border-white/10 bg-slate-900/60 text-white placeholder:text-slate-400'
           />
         </div>
 
         <div className='space-y-2'>
-          <Label htmlFor='password'>Password</Label>
+          <Label
+            htmlFor='password'
+            className='text-sm font-medium text-slate-200'
+          >
+            Password
+          </Label>
           <Input
             id='password'
             name='password'
@@ -63,26 +74,31 @@ export function LoginForm() {
             value={form.password}
             onChange={handleChange}
             placeholder='Enter your password'
+            className='h-11 rounded-xl border-white/10 bg-slate-900/60 text-white placeholder:text-slate-400'
           />
         </div>
 
-        {error && <p className='text-sm text-red-500'>{error}</p>}
+        {error && (
+          <div className='rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300'>
+            {error}
+          </div>
+        )}
 
         <Button
           type='submit'
-          className='w-full'
+          className='h-11 w-full rounded-xl bg-slate-100 text-slate-900 hover:bg-white'
           disabled={loading}
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? 'Logging in...' : 'Sign in'}
         </Button>
 
-        <p className='text-sm text-muted-foreground text-center'>
+        <p className='text-center text-sm text-slate-400'>
           Don&apos;t have an account?{' '}
           <Link
             to='/register'
-            className='underline underline-offset-4'
+            className='font-medium text-slate-200 underline underline-offset-4 transition hover:text-white'
           >
-            Register
+            Create one
           </Link>
         </p>
       </form>
