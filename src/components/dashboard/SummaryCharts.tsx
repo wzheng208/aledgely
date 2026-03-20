@@ -9,8 +9,13 @@ import {
 } from '@/components/ui/card';
 import { formatCurrency, formatMileage } from '@/utils/format';
 
-export function SummaryCharts() {
-  const { data, loading, error } = useCategorySummary();
+type SummaryChartsProps = {
+  startDate?: string;
+  endDate?: string;
+};
+
+export function SummaryCharts({ startDate, endDate }: SummaryChartsProps) {
+  const { data, loading, error } = useCategorySummary({ startDate, endDate });
 
   if (loading) {
     return (

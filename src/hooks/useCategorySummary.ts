@@ -1,32 +1,56 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getCategorySummary } from '@/services/records.service';
 import type { CategorySummaryResponse } from '@/types/summary';
 
-export function useCategorySummary() {
+type UseCategorySummaryParams = {
+  startDate?: string;
+  endDate?: string;
+};
+
+export function useCategorySummary({
+  startDate,
+  endDate,
+}: UseCategorySummaryParams = {}) {
   const [data, setData] = useState<CategorySummaryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const hasFetched = useRef(false);
-
   useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
+    let isActive = true;
 
     async function fetchCategorySummary() {
       try {
-        const result = await getCategorySummary();
-        setData(result);
+        setLoading(true);
+        setError(null);
+
+        const result = await getCategorySummary({
+          start_date: startDate,
+          end_date: endDate,
+          limit: 5,
+        });
+
+        if (isActive) {
+          setData(result);
+        }
       } catch (err) {
         console.error(err);
-        setError('Failed to load category summary');
+
+        if (isActive) {
+          setError('Failed to load category summary');
+        }
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     }
 
     fetchCategorySummary();
-  }, []);
+
+    return () => {
+      isActive = false;
+    };
+  }, [startDate, endDate]);
 
   return { data, loading, error };
 }
