@@ -6,6 +6,7 @@ import { DashboardFilterBar } from '@/components/dashboard/DashboardFilterBar';
 import {
   DashboardPreset,
   getDateRangeFromPreset,
+  formatDisplayDate,
 } from '@/lib/dashboard-date-range';
 
 export default function DashboardPage() {
@@ -58,6 +59,13 @@ export default function DashboardPage() {
         onDraftEndDateChange={setDraftEndDate}
         onApplyCustomRange={handleApplyCustomRange}
       />
+
+      <p className='mb-4 text-sm text-slate-500'>
+        <p className='mb-4 text-sm text-slate-500'>
+          Showing data from {formatDisplayDate(startDate)} to{' '}
+          {formatDisplayDate(endDate)}
+        </p>
+      </p>
 
       <div className='space-y-6'>
         <SummaryCards
