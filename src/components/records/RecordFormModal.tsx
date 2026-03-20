@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useCategories } from '@/hooks/useCategories';
+import type { CategoryItem } from '@/services/categories.service';
 import type {
   RecordItem,
   RecordPayload,
@@ -63,6 +65,12 @@ export function RecordFormModal({
   );
   const [formError, setFormError] = useState<string | null>(null);
 
+  const {
+    data: categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+  } = useCategories(form.type, open);
+
   if (!open) return null;
 
   const handleSubmit = async () => {
@@ -90,9 +98,18 @@ export function RecordFormModal({
       date: form.date,
       notes: form.notes || null,
       category_id: form.categoryId ? Number(form.categoryId) : null,
-      amount: form.type === 'mileage' ? null : Number(form.amount),
+      amount:
+        form.type === 'mileage'
+          ? Number(form.amount || 0)
+          : Number(form.amount),
       miles: form.type === 'mileage' ? Number(form.miles) : null,
     };
+
+    if (form.type === 'mileage') {
+      payload.amount = null;
+    } else {
+      payload.miles = null;
+    }
 
     await onSubmit(payload);
   };
@@ -122,6 +139,7 @@ export function RecordFormModal({
                   setForm((prev) => ({
                     ...prev,
                     type: e.target.value as RecordType,
+                    categoryId: '',
                   }))
                 }
               >
@@ -186,10 +204,10 @@ export function RecordFormModal({
 
           <div className='flex flex-col gap-1'>
             <label className='text-sm font-medium text-slate-700'>
-              Category ID
+              Category
             </label>
-            <Input
-              type='number'
+            <select
+              className='h-10 rounded-md border border-slate-200 bg-white px-3 text-sm'
               value={form.categoryId}
               onChange={(e) =>
                 setForm((prev) => ({
@@ -197,8 +215,36 @@ export function RecordFormModal({
                   categoryId: e.target.value,
                 }))
               }
-              placeholder='Optional for now'
-            />
+              disabled={categoriesLoading}
+            >
+              <option value=''>
+                {categoriesLoading
+                  ? 'Loading categories...'
+                  : 'Select a category'}
+              </option>
+
+              {categories.map((category: CategoryItem) => (
+                <option
+                  key={category.id}
+                  value={category.id}
+                >
+                  {category.name}
+                  {category.is_system ? '' : ' (Custom)'}
+                </option>
+              ))}
+            </select>
+
+            {categoriesError && (
+              <p className='text-sm text-red-600'>{categoriesError}</p>
+            )}
+
+            {!categoriesLoading &&
+              !categoriesError &&
+              categories.length === 0 && (
+                <p className='text-sm text-slate-500'>
+                  No categories available for this type yet.
+                </p>
+              )}
           </div>
 
           <div className='flex flex-col gap-1'>
