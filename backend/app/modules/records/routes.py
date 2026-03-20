@@ -33,9 +33,9 @@ def create_record():
 @records_bp.route("/", methods=["GET"])
 def get_records():
     try:
-        params = query_schema.load(request.args)  # no user_id anymore
+        params = query_schema.load(request.args)
 
-        records = RecordService.get_records(
+        result = RecordService.get_records(
             type=params.get("type"),
             start_date=params.get("start_date"),
             end_date=params.get("end_date"),
@@ -45,10 +45,11 @@ def get_records():
             order=params["order"]
         )
 
-        result = [serialize_record(r) for r in records]
+        serialized_records = [serialize_record(r) for r in result["records"]]
 
         return jsonify({
-            "data": result,
+            "data": serialized_records,
+            "total": result["total"],
             "limit": params["limit"],
             "offset": params["offset"],
             "sort": params["sort"],

@@ -60,7 +60,6 @@ class RecordService:
         if end_date:
             query = query.filter(Record.date <= end_date)
 
-        # Safe sorting
         sortable_fields = {
             "date": Record.date,
             "amount": Record.amount,
@@ -72,14 +71,19 @@ class RecordService:
         if not sort_column:
             raise ValueError(f"Invalid sort field: {sort}")
 
+        total = query.count()
+
         if order.lower() == "desc":
             query = query.order_by(sort_column.desc())
         else:
             query = query.order_by(sort_column.asc())
 
-        query = query.offset(offset).limit(limit)
+        records = query.offset(offset).limit(limit).all()
 
-        return query.all()
+        return {
+            "records": records,
+            "total": total,
+        }
 
     @staticmethod
     def update_record(record_id: int, data: dict):
