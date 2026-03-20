@@ -5,7 +5,7 @@ import {
   type RecordsListResponse,
 } from '@/services/records.service';
 
-export function useRecords(params: RecordListParams) {
+export function useRecords(params: RecordListParams, refreshToken = 0) {
   const [data, setData] = useState<RecordsListResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +49,7 @@ export function useRecords(params: RecordListParams) {
     params.offset,
     params.sort,
     params.order,
+    refreshToken,
   ]);
 
   return { data, loading, error };

@@ -1,8 +1,11 @@
 import type { RecordItem } from '@/services/records.service';
+import { Button } from '@/components/ui/button';
 import { formatCurrency, formatMileage } from '@/utils/format';
 
 type RecordsTableProps = {
   records: RecordItem[];
+  onEdit: (record: RecordItem) => void;
+  onDelete: (record: RecordItem) => void;
 };
 
 function formatDisplayDate(value: string) {
@@ -19,7 +22,7 @@ function formatType(type: string) {
   return type.charAt(0).toUpperCase() + type.slice(1);
 }
 
-export function RecordsTable({ records }: RecordsTableProps) {
+export function RecordsTable({ records, onEdit, onDelete }: RecordsTableProps) {
   if (records.length === 0) {
     return (
       <div className='rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm'>
@@ -49,6 +52,9 @@ export function RecordsTable({ records }: RecordsTableProps) {
               <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500'>
                 Notes
               </th>
+              <th className='px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500'>
+                Actions
+              </th>
             </tr>
           </thead>
 
@@ -74,8 +80,29 @@ export function RecordsTable({ records }: RecordsTableProps) {
                     ? formatMileage(Number(record.miles ?? 0))
                     : formatCurrency(Number(record.amount ?? 0))}
                 </td>
-                <td className='px-4 py-4 text-sm text-slate-500'>
-                  {record.notes || '—'}
+                <td className='max-w-[280px] px-4 py-4 text-sm text-slate-500'>
+                  <div className='truncate'>{record.notes || '—'}</div>
+                </td>
+                <td className='px-4 py-4'>
+                  <div className='flex justify-end gap-2'>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      size='sm'
+                      onClick={() => onEdit(record)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      size='sm'
+                      className='text-red-600 hover:text-red-700'
+                      onClick={() => onDelete(record)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}
