@@ -18,6 +18,11 @@ import {
 } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/format';
 
+type TrendsChartProps = {
+  startDate?: string;
+  endDate?: string;
+};
+
 function formatShortDate(value: string) {
   const date = new Date(value);
   return date.toLocaleDateString('en-US', {
@@ -26,8 +31,8 @@ function formatShortDate(value: string) {
   });
 }
 
-export function TrendsChart() {
-  const { data, loading, error } = useTrends();
+export function TrendsChart({ startDate, endDate }: TrendsChartProps) {
+  const { data, loading, error } = useTrends({ startDate, endDate });
 
   if (loading) {
     return <Card className='h-[420px] shadow-sm' />;

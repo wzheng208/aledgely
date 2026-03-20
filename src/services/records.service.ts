@@ -8,6 +8,7 @@ import type {
 export type SummaryParams = {
   start_date?: string;
   end_date?: string;
+  limit?: number;
 };
 
 export async function getSummaryTotals(
@@ -15,7 +16,12 @@ export async function getSummaryTotals(
 ): Promise<SummaryTotalsResponse> {
   const response = await apiClient.get<SummaryTotalsResponse>(
     '/records/summary/totals',
-    { params },
+    {
+      params: {
+        start_date: params?.start_date,
+        end_date: params?.end_date,
+      },
+    },
   );
 
   return response.data;
@@ -26,7 +32,13 @@ export async function getCategorySummary(
 ): Promise<CategorySummaryResponse> {
   const response = await apiClient.get<CategorySummaryResponse>(
     '/records/summary/category',
-    { params },
+    {
+      params: {
+        start_date: params?.start_date,
+        end_date: params?.end_date,
+        limit: params?.limit,
+      },
+    },
   );
 
   return response.data;
@@ -37,7 +49,12 @@ export async function getSummaryTrends(
 ): Promise<SummaryTrendItem[]> {
   const response = await apiClient.get<SummaryTrendItem[]>(
     '/records/summary/trends',
-    { params },
+    {
+      params: {
+        start_date: params?.start_date,
+        end_date: params?.end_date,
+      },
+    },
   );
 
   return response.data;

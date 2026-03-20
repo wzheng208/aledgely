@@ -1,32 +1,52 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getSummaryTrends } from '@/services/records.service';
 import type { SummaryTrendItem } from '@/types/summary';
 
-export function useTrends() {
+type UseTrendsParams = {
+  startDate?: string;
+  endDate?: string;
+};
+
+export function useTrends({ startDate, endDate }: UseTrendsParams = {}) {
   const [data, setData] = useState<SummaryTrendItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const hasFetched = useRef(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
+    let isMounted = true;
 
-    async function fetchTrends() {
+    async function loadTrends() {
       try {
-        const result = await getSummaryTrends();
-        setData(result);
+        setLoading(true);
+        setError(false);
+
+        const result = await getSummaryTrends({
+          start_date: startDate,
+          end_date: endDate,
+        });
+
+        if (isMounted) {
+          setData(result);
+        }
       } catch (err) {
-        console.error(err);
-        setError('Failed to load trend data');
+        console.error('Failed to load summary trends', err);
+
+        if (isMounted) {
+          setError(true);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
-    fetchTrends();
-  }, []);
+    loadTrends();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [startDate, endDate]);
 
   return { data, loading, error };
 }

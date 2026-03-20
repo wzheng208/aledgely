@@ -2,8 +2,13 @@ import { SummaryCard } from '@/components/dashboard/SummaryCard';
 import { useSummary } from '@/hooks/useSummary';
 import { formatCurrency, formatMileage } from '@/utils/format';
 
-export function SummaryCards() {
-  const { data, loading, error } = useSummary();
+type SummaryCardsProps = {
+  startDate?: string;
+  endDate?: string;
+};
+
+export function SummaryCards({ startDate, endDate }: SummaryCardsProps) {
+  const { data, loading, error } = useSummary({ startDate, endDate });
 
   if (loading) {
     return (

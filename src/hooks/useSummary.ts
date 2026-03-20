@@ -1,32 +1,52 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getSummaryTotals } from '@/services/records.service';
 import type { SummaryTotalsResponse } from '@/types/summary';
 
-export function useSummary() {
+type UseSummaryParams = {
+  startDate?: string;
+  endDate?: string;
+};
+
+export function useSummary({ startDate, endDate }: UseSummaryParams = {}) {
   const [data, setData] = useState<SummaryTotalsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const hasFetched = useRef(false);
-
   useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
+    let isActive = true;
 
     async function fetchSummary() {
       try {
-        const result = await getSummaryTotals();
-        setData(result);
+        setLoading(true);
+        setError(null);
+
+        const result = await getSummaryTotals({
+          start_date: startDate,
+          end_date: endDate,
+        });
+
+        if (isActive) {
+          setData(result);
+        }
       } catch (err) {
         console.error(err);
-        setError('Failed to load summary data');
+
+        if (isActive) {
+          setError('Failed to load summary data');
+        }
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     }
 
     fetchSummary();
-  }, []);
+
+    return () => {
+      isActive = false;
+    };
+  }, [startDate, endDate]);
 
   return { data, loading, error };
 }
