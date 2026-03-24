@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { apiClient } from '@/services/apiClient';
-import { setAuth } from '@/lib/auth-storage';
+import { useAuth } from '@/hooks/useAuth';
 import type { AuthResponse, RegisterPayload } from '@/types/auth';
 
 export function useRegister() {
+  const { setAuth } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -12,8 +13,15 @@ export function useRegister() {
       setLoading(true);
       setError('');
 
-      const res = await apiClient.post<AuthResponse>('/api/auth/register', payload);
-      setAuth(res.data.token, res.data.user);
+      const res = await apiClient.post<AuthResponse>(
+        '/api/auth/register',
+        payload,
+      );
+
+      setAuth({
+        token: res.data.token,
+        user: res.data.user,
+      });
 
       return res.data;
     } catch (err: any) {

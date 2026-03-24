@@ -8,6 +8,8 @@ import {
   getDateRangeFromPreset,
 } from '@/lib/dashboard-date-range';
 import { useMemo, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { getFirstName } from '@/lib/user';
 
 export default function DashboardPage() {
   const defaultRange = useMemo(() => getDateRangeFromPreset('7d'), []);
@@ -18,7 +20,8 @@ export default function DashboardPage() {
   const [draftStartDate, setDraftStartDate] = useState(defaultRange.startDate);
   const [draftEndDate, setDraftEndDate] = useState(defaultRange.endDate);
 
-  const userName = 'Wendy';
+  const { user } = useAuth();
+  const userName = getFirstName(user?.name);
 
   const handlePresetChange = (nextPreset: DashboardPreset) => {
     setPreset(nextPreset);

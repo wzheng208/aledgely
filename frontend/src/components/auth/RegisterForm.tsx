@@ -14,25 +14,52 @@ export function RegisterForm() {
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
   });
 
+  const [formError, setFormError] = useState('');
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
     setForm((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
+
+    if (formError) {
+      setFormError('');
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setFormError('');
+
+    if (form.password !== form.confirmPassword) {
+      setFormError('Passwords do not match');
+      return;
+    }
 
     try {
-      await register(form);
+      await register({
+        name: form.name.trim(),
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      });
+
       navigate('/dashboard');
     } catch {
       // handled in hook
     }
   };
+
+  const isSubmitDisabled =
+    loading ||
+    !form.name.trim() ||
+    !form.email.trim() ||
+    !form.password.trim() ||
+    !form.confirmPassword.trim();
 
   return (
     <AuthCard
@@ -54,9 +81,10 @@ export function RegisterForm() {
             id='name'
             name='name'
             type='text'
+            autoComplete='name'
             value={form.name}
             onChange={handleChange}
-            placeholder='Demo Operator'
+            placeholder='Jane Doe'
             className='h-11 rounded-xl border-white/10 bg-slate-900/60 text-white placeholder:text-slate-400'
           />
         </div>
@@ -72,6 +100,7 @@ export function RegisterForm() {
             id='email'
             name='email'
             type='email'
+            autoComplete='email'
             value={form.email}
             onChange={handleChange}
             placeholder='you@example.com'
@@ -90,12 +119,38 @@ export function RegisterForm() {
             id='password'
             name='password'
             type='password'
+            autoComplete='new-password'
             value={form.password}
             onChange={handleChange}
             placeholder='Create a password'
             className='h-11 rounded-xl border-white/10 bg-slate-900/60 text-white placeholder:text-slate-400'
           />
         </div>
+
+        <div className='space-y-2'>
+          <Label
+            htmlFor='confirmPassword'
+            className='text-sm font-medium text-slate-200'
+          >
+            Confirm Password
+          </Label>
+          <Input
+            id='confirmPassword'
+            name='confirmPassword'
+            type='password'
+            autoComplete='new-password'
+            value={form.confirmPassword}
+            onChange={handleChange}
+            placeholder='Confirm your password'
+            className='h-11 rounded-xl border-white/10 bg-slate-900/60 text-white placeholder:text-slate-400'
+          />
+        </div>
+
+        {formError && (
+          <div className='rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300'>
+            {formError}
+          </div>
+        )}
 
         {error && (
           <div className='rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300'>
@@ -106,7 +161,7 @@ export function RegisterForm() {
         <Button
           type='submit'
           className='h-11 w-full rounded-xl bg-slate-100 text-slate-900 hover:bg-white'
-          disabled={loading}
+          disabled={isSubmitDisabled}
         >
           {loading ? 'Creating account...' : 'Create account'}
         </Button>

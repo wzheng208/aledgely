@@ -1,15 +1,12 @@
-import { clearAuth, getToken, getUser } from '@/lib/auth-storage';
+import { useContext } from 'react';
+import { AuthContext } from '@/contexts/auth-context';
 
 export function useAuth() {
-  const token = getToken();
-  const user = getUser();
+  const context = useContext(AuthContext);
 
-  return {
-    token,
-    user,
-    isAuthenticated: !!token,
-    logout: clearAuth,
-  };
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+
+  return context;
 }
-
-//Updating this file to see if github updates
