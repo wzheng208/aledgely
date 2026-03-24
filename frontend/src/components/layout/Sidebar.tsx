@@ -1,5 +1,6 @@
 import { BarChart3, FolderKanban, LogOut, Settings } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import aledgelyIcon from '@/assets/aledgely-icon-light.png';
 
 import { clearAuth } from '@/lib/auth-storage';
 import { Button } from '@/components/ui/button';
@@ -88,9 +89,11 @@ export function Sidebar() {
     <aside className='flex h-full w-64 flex-col bg-slate-900 px-4 py-5 text-white'>
       <div className='px-4 py-5'>
         <div className='flex items-center gap-3'>
-          <div className='flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-800 text-sm font-semibold text-slate-100 ring-1 ring-white/10'>
-            A
-          </div>
+          <img
+            src={aledgelyIcon}
+            alt='Aledgely icon'
+            className='h-20 w-20 object-contain'
+          />
 
           <div>
             <h1 className='text-lg font-semibold tracking-tight text-slate-50'>
