@@ -27,17 +27,24 @@ const generalItems = [
   },
 ];
 
-type NavSectionProps = {
-  title: string;
-  items: {
-    label: string;
-    href: string;
-    icon: React.ComponentType<{ className?: string }>;
-  }[];
-  pathname: string;
+type NavItem = {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
 };
 
-function NavSection({ title, items, pathname }: NavSectionProps) {
+type NavSectionProps = {
+  title: string;
+  items: NavItem[];
+  pathname: string;
+  onNavigate?: () => void;
+};
+
+type SidebarProps = {
+  onNavigate?: () => void;
+};
+
+function NavSection({ title, items, pathname, onNavigate }: NavSectionProps) {
   return (
     <div>
       <p className='mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500'>
@@ -60,7 +67,10 @@ function NavSection({ title, items, pathname }: NavSectionProps) {
               }`}
               asChild
             >
-              <Link to={item.href}>
+              <Link
+                to={item.href}
+                onClick={() => onNavigate?.()}
+              >
                 <Icon
                   className={`h-4 w-4 ${
                     isActive ? 'text-slate-100' : 'text-slate-400'
@@ -76,28 +86,29 @@ function NavSection({ title, items, pathname }: NavSectionProps) {
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ onNavigate }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
 
   const handleLogout = () => {
+    onNavigate?.();
     logout();
     navigate('/login');
   };
 
   return (
-    <aside className='flex h-full w-64 flex-col bg-slate-900 px-4 py-5 text-white'>
-      <div className='px-4 py-5'>
+    <aside className='flex h-full w-full max-w-[280px] flex-col border-r border-white/10 bg-slate-900 text-white lg:w-64 lg:max-w-none'>
+      <div className='px-4 py-5 sm:px-5'>
         <div className='flex items-center gap-3'>
           <img
             src={aledgelyIcon}
             alt='Aledgely icon'
-            className='h-20 w-20 object-contain'
+            className='h-14 w-14 object-contain sm:h-16 sm:w-16'
           />
 
-          <div>
-            <h1 className='text-lg font-semibold tracking-tight text-slate-50'>
+          <div className='min-w-0'>
+            <h1 className='truncate text-lg font-semibold tracking-tight text-slate-50'>
               Aledgely
             </h1>
             <p className='text-xs text-slate-400'>Business tracking</p>
@@ -112,14 +123,16 @@ export function Sidebar() {
           title='Menu'
           items={menuItems}
           pathname={location.pathname}
+          onNavigate={onNavigate}
         />
 
-        <div className='flex-1 flex items-center'>
+        <div className='flex flex-1 items-center'>
           <div className='w-full'>
             <NavSection
               title='General'
               items={generalItems}
               pathname={location.pathname}
+              onNavigate={onNavigate}
             />
           </div>
         </div>
