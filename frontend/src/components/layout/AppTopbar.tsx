@@ -1,4 +1,4 @@
-import { Search, Bell, Moon } from 'lucide-react';
+import { Bell, Moon } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import aledgelyIcon from '@/assets/aledgely-icon.png';
 import { useAuth } from '@/hooks/useAuth';
