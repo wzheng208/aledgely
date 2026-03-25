@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { RecordsFilterBar } from '@/components/records/RecordsFilterBar';
 import { RecordsTable } from '@/components/records/RecordsTable';
 import { RecordFormModal } from '@/components/records/RecordFormModal';
 import { DeleteRecordDialog } from '@/components/records/DeleteRecordDialog';
 import { useRecords } from '@/hooks/useRecords';
+import { appToast } from '@/lib/toast';
 import {
   createRecord,
   deleteRecord,
@@ -30,9 +31,6 @@ export default function RecordsPage() {
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedRecord, setSelectedRecord] = useState<RecordItem | null>(null);
   const [mutationLoading, setMutationLoading] = useState(false);
-
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
 
   const [recordPendingDelete, setRecordPendingDelete] =
     useState<RecordItem | null>(null);
@@ -74,21 +72,6 @@ export default function RecordsPage() {
     setRefreshKey((prev) => prev + 1);
   };
 
-  useEffect(() => {
-    if (!successMessage) return;
-
-    const timeout = window.setTimeout(() => {
-      setSuccessMessage(null);
-    }, 3000);
-
-    return () => window.clearTimeout(timeout);
-  }, [successMessage]);
-
-  const clearFeedback = () => {
-    setSuccessMessage(null);
-    setActionError(null);
-  };
-
   const handleReset = () => {
     setType('all');
     setStartDate('');
@@ -97,7 +80,6 @@ export default function RecordsPage() {
     setOrder('desc');
     setLimit(10);
     setOffset(0);
-    clearFeedback();
   };
 
   const handlePreviousPage = () => {
@@ -111,14 +93,12 @@ export default function RecordsPage() {
   };
 
   const handleOpenCreate = () => {
-    clearFeedback();
     setModalMode('create');
     setSelectedRecord(null);
     setModalOpen(true);
   };
 
   const handleOpenEdit = (record: RecordItem) => {
-    clearFeedback();
     setModalMode('edit');
     setSelectedRecord(record);
     setModalOpen(true);
@@ -131,33 +111,44 @@ export default function RecordsPage() {
   };
 
   const handleSubmitRecord = async (payload: RecordPayload) => {
+    if (modalMode === 'edit' && !selectedRecord) {
+      appToast.error(
+        new Error('No record selected.'),
+        'Unable to update record.',
+      );
+      return;
+    }
+
     try {
       setMutationLoading(true);
-      setActionError(null);
-      setSuccessMessage(null);
 
       if (modalMode === 'create') {
-        await createRecord(payload);
+        await appToast.promise(createRecord(payload), {
+          loading: 'Creating record...',
+          success: 'Record created successfully.',
+          error: 'Failed to create record.',
+        });
+
         setOffset(0);
-        setSuccessMessage('Record created successfully.');
-      } else if (selectedRecord) {
-        await updateRecord(selectedRecord.id, payload);
-        setSuccessMessage('Record updated successfully.');
+      } else {
+        await appToast.promise(updateRecord(selectedRecord!.id, payload), {
+          loading: 'Updating record...',
+          success: 'Record updated successfully.',
+          error: 'Failed to update record.',
+        });
       }
 
       setModalOpen(false);
       setSelectedRecord(null);
       triggerRefresh();
-    } catch (err) {
-      console.error(err);
-      setActionError('Failed to save record. Please try again.');
+    } catch {
+      // toast.promise already handles the error toast
     } finally {
       setMutationLoading(false);
     }
   };
 
   const handleRequestDelete = (record: RecordItem) => {
-    clearFeedback();
     setRecordPendingDelete(record);
   };
 
@@ -171,10 +162,12 @@ export default function RecordsPage() {
 
     try {
       setDeleteLoading(true);
-      setActionError(null);
-      setSuccessMessage(null);
 
-      await deleteRecord(recordPendingDelete.id);
+      await appToast.promise(deleteRecord(recordPendingDelete.id), {
+        loading: 'Deleting record...',
+        success: 'Record deleted successfully.',
+        error: 'Failed to delete record.',
+      });
 
       const willPageBecomeEmpty = records.length === 1 && offset > 0;
 
@@ -185,11 +178,8 @@ export default function RecordsPage() {
       } else {
         triggerRefresh();
       }
-
-      setSuccessMessage('Record deleted successfully.');
-    } catch (err) {
-      console.error(err);
-      setActionError('Failed to delete record. Please try again.');
+    } catch {
+      // toast.promise already handles the error toast
     } finally {
       setDeleteLoading(false);
     }
@@ -212,18 +202,6 @@ export default function RecordsPage() {
           Add record
         </Button>
       </div>
-
-      {successMessage && (
-        <div className='mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700'>
-          {successMessage}
-        </div>
-      )}
-
-      {actionError && (
-        <div className='mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700'>
-          {actionError}
-        </div>
-      )}
 
       <RecordsFilterBar
         type={type}

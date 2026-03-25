@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AuthCard } from './AuthCard';
 import { useLogin } from '@/hooks/useLogin';
+import { appToast } from '@/lib/toast';
 
 export function LoginForm() {
   const navigate = useNavigate();
-  const { login, loading, error } = useLogin();
+  const { login, loading } = useLogin();
 
   const [form, setForm] = useState({
     email: '',
@@ -28,10 +29,15 @@ export function LoginForm() {
     e.preventDefault();
 
     try {
-      await login(form);
+      await appToast.promise(login(form), {
+        loading: 'Signing you in...',
+        success: 'Welcome back.',
+        error: 'Login failed.',
+      });
+
       navigate('/dashboard');
     } catch {
-      // handled in hook
+      // toast already handled
     }
   };
 
@@ -39,14 +45,21 @@ export function LoginForm() {
     setDemoLoading(true);
 
     try {
-      await login({
-        email: 'demo@aledgely.com',
-        password: 'password123',
-      });
+      await appToast.promise(
+        login({
+          email: 'demo@aledgely.com',
+          password: 'password123',
+        }),
+        {
+          loading: 'Opening demo account...',
+          success: 'Demo account ready.',
+          error: 'Demo login failed.',
+        },
+      );
 
       navigate('/dashboard');
     } catch {
-      // handled in hook
+      // toast already handled
     } finally {
       setDemoLoading(false);
     }
@@ -77,6 +90,7 @@ export function LoginForm() {
             value={form.email}
             onChange={handleChange}
             placeholder='you@example.com'
+            required
             className='h-11 rounded-xl border-white/10 bg-slate-900/60 text-white placeholder:text-slate-400'
           />
         </div>
@@ -95,15 +109,10 @@ export function LoginForm() {
             value={form.password}
             onChange={handleChange}
             placeholder='Enter your password'
+            required
             className='h-11 rounded-xl border-white/10 bg-slate-900/60 text-white placeholder:text-slate-400'
           />
         </div>
-
-        {error && (
-          <div className='rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300'>
-            {error}
-          </div>
-        )}
 
         <div className='space-y-3'>
           <Button

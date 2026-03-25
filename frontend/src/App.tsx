@@ -7,6 +7,7 @@ import RecordsPage from '@/pages/RecordsPage';
 import SettingsPage from '@/pages/SettingsPage';
 import ProtectedRoute from '@/components/auth/ProtectRoute';
 import { AppShell } from '@/components/layout/AppShell';
+import { Toaster } from '@/components/ui/sonner';
 
 export default function App() {
   return (
@@ -53,6 +54,7 @@ export default function App() {
         </Route>
       </Routes>
 
+      <Toaster />
       <Analytics />
     </BrowserRouter>
   );

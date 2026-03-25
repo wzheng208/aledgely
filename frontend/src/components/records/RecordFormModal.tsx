@@ -73,6 +73,17 @@ export function RecordFormModal({
 
   if (!open) return null;
 
+  const updateForm = (updates: Partial<RecordFormState>) => {
+    setForm((prev) => ({
+      ...prev,
+      ...updates,
+    }));
+
+    if (formError) {
+      setFormError(null);
+    }
+  };
+
   const handleSubmit = async () => {
     setFormError(null);
 
@@ -129,13 +140,12 @@ export function RecordFormModal({
                     className='h-11 rounded-xl border border-white/10 bg-slate-800 px-3 text-sm text-slate-100 outline-none transition focus:border-slate-500'
                     value={form.type}
                     onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
+                      updateForm({
                         type: e.target.value as RecordType,
                         categoryId: '',
-                        amount: e.target.value === 'mileage' ? '' : prev.amount,
-                        miles: e.target.value === 'mileage' ? prev.miles : '',
-                      }))
+                        amount: e.target.value === 'mileage' ? '' : form.amount,
+                        miles: e.target.value === 'mileage' ? form.miles : '',
+                      })
                     }
                   >
                     <option value='income'>Income</option>
@@ -151,12 +161,7 @@ export function RecordFormModal({
                   <Input
                     type='date'
                     value={form.date}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        date: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => updateForm({ date: e.target.value })}
                     className='h-11 rounded-xl border-white/10 bg-slate-800 text-slate-100'
                   />
                 </div>
@@ -171,12 +176,7 @@ export function RecordFormModal({
                     type='number'
                     step='0.01'
                     value={form.miles}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        miles: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => updateForm({ miles: e.target.value })}
                     placeholder='Enter miles'
                     className='h-11 rounded-xl border-white/10 bg-slate-800 text-slate-100 placeholder:text-slate-400'
                   />
@@ -190,12 +190,7 @@ export function RecordFormModal({
                     type='number'
                     step='0.01'
                     value={form.amount}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        amount: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => updateForm({ amount: e.target.value })}
                     placeholder='Enter amount'
                     className='h-11 rounded-xl border-white/10 bg-slate-800 text-slate-100 placeholder:text-slate-400'
                   />
@@ -209,12 +204,7 @@ export function RecordFormModal({
                 <select
                   className='h-11 rounded-xl border border-white/10 bg-slate-800 px-3 text-sm text-slate-100 outline-none transition focus:border-slate-500 disabled:opacity-60'
                   value={form.categoryId}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      categoryId: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => updateForm({ categoryId: e.target.value })}
                   disabled={categoriesLoading}
                 >
                   <option value=''>
@@ -254,12 +244,7 @@ export function RecordFormModal({
                 <textarea
                   className='min-h-[120px] rounded-xl border border-white/10 bg-slate-800 px-3 py-3 text-sm text-slate-100 placeholder:text-slate-400 outline-none transition focus:border-slate-500'
                   value={form.notes}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      notes: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => updateForm({ notes: e.target.value })}
                   placeholder='Optional notes'
                 />
               </div>

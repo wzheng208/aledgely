@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AuthCard } from './AuthCard';
 import { useRegister } from '@/hooks/useRegister';
+import { appToast } from '@/lib/toast';
 
 export function RegisterForm() {
   const navigate = useNavigate();
-  const { register, loading, error } = useRegister();
+  const { register, loading } = useRegister();
 
   const [form, setForm] = useState({
     name: '',
@@ -42,15 +43,22 @@ export function RegisterForm() {
     }
 
     try {
-      await register({
-        name: form.name.trim(),
-        email: form.email.trim().toLowerCase(),
-        password: form.password,
-      });
+      await appToast.promise(
+        register({
+          name: form.name.trim(),
+          email: form.email.trim().toLowerCase(),
+          password: form.password,
+        }),
+        {
+          loading: 'Creating your account...',
+          success: 'Account created successfully.',
+          error: 'Failed to create account.',
+        },
+      );
 
       navigate('/dashboard');
     } catch {
-      // handled in hook
+      // toast already handled
     }
   };
 
@@ -85,6 +93,7 @@ export function RegisterForm() {
             value={form.name}
             onChange={handleChange}
             placeholder='Jane Doe'
+            required
             className='h-11 rounded-xl border-white/10 bg-slate-900/60 text-white placeholder:text-slate-400'
           />
         </div>
@@ -104,6 +113,7 @@ export function RegisterForm() {
             value={form.email}
             onChange={handleChange}
             placeholder='you@example.com'
+            required
             className='h-11 rounded-xl border-white/10 bg-slate-900/60 text-white placeholder:text-slate-400'
           />
         </div>
@@ -123,6 +133,7 @@ export function RegisterForm() {
             value={form.password}
             onChange={handleChange}
             placeholder='Create a password'
+            required
             className='h-11 rounded-xl border-white/10 bg-slate-900/60 text-white placeholder:text-slate-400'
           />
         </div>
@@ -142,6 +153,7 @@ export function RegisterForm() {
             value={form.confirmPassword}
             onChange={handleChange}
             placeholder='Confirm your password'
+            required
             className='h-11 rounded-xl border-white/10 bg-slate-900/60 text-white placeholder:text-slate-400'
           />
         </div>
@@ -149,12 +161,6 @@ export function RegisterForm() {
         {formError && (
           <div className='rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300'>
             {formError}
-          </div>
-        )}
-
-        {error && (
-          <div className='rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300'>
-            {error}
           </div>
         )}
 
