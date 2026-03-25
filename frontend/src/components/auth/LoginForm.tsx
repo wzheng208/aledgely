@@ -15,6 +15,8 @@ export function LoginForm() {
     password: '',
   });
 
+  const [demoLoading, setDemoLoading] = useState(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
       ...prev,
@@ -33,10 +35,29 @@ export function LoginForm() {
     }
   };
 
+  const handleDemoLogin = async () => {
+    setDemoLoading(true);
+
+    try {
+      await login({
+        email: 'demo@aledgely.com',
+        password: 'password123',
+      });
+
+      navigate('/dashboard');
+    } catch {
+      // handled in hook
+    } finally {
+      setDemoLoading(false);
+    }
+  };
+
+  const isDisabled = loading || demoLoading;
+
   return (
     <AuthCard
       title='Welcome back'
-      description='Sign in to continue managing your business in Aledgely.'
+      description='Sign in to continue managing your business, or explore the app with a demo account.'
     >
       <form
         onSubmit={handleSubmit}
@@ -84,13 +105,29 @@ export function LoginForm() {
           </div>
         )}
 
-        <Button
-          type='submit'
-          className='h-11 w-full rounded-xl bg-slate-100 text-slate-900 hover:bg-white'
-          disabled={loading}
-        >
-          {loading ? 'Logging in...' : 'Sign in'}
-        </Button>
+        <div className='space-y-3'>
+          <Button
+            type='submit'
+            className='h-11 w-full rounded-xl bg-slate-100 text-slate-900 hover:bg-white'
+            disabled={isDisabled}
+          >
+            {loading ? 'Logging in...' : 'Sign in'}
+          </Button>
+
+          <Button
+            type='button'
+            variant='outline'
+            className='h-11 w-full rounded-xl border-white/10 bg-slate-900/40 text-slate-100 hover:bg-slate-800'
+            onClick={handleDemoLogin}
+            disabled={isDisabled}
+          >
+            {demoLoading ? 'Opening demo...' : 'Try demo'}
+          </Button>
+        </div>
+
+        <p className='text-center text-sm text-slate-400'>
+          Explore the app instantly with sample business data.
+        </p>
 
         <p className='text-center text-sm text-slate-400'>
           Don&apos;t have an account?{' '}

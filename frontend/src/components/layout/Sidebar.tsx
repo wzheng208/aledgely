@@ -2,7 +2,7 @@ import { BarChart3, FolderKanban, LogOut, Settings } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import aledgelyIcon from '@/assets/aledgely-icon-light.png';
 
-import { clearAuth } from '@/lib/auth-storage';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
@@ -79,9 +79,10 @@ function NavSection({ title, items, pathname }: NavSectionProps) {
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    clearAuth();
+    logout();
     navigate('/login');
   };
 
@@ -106,32 +107,34 @@ export function Sidebar() {
 
       <Separator className='bg-white/10' />
 
-      <div className='flex-1 overflow-y-auto px-2 py-4'>
-        <div className='space-y-8'>
-          <NavSection
-            title='Menu'
-            items={menuItems}
-            pathname={location.pathname}
-          />
+      <div className='flex flex-1 flex-col px-2 py-4'>
+        <NavSection
+          title='Menu'
+          items={menuItems}
+          pathname={location.pathname}
+        />
 
-          <NavSection
-            title='General'
-            items={generalItems}
-            pathname={location.pathname}
-          />
+        <div className='flex-1 flex items-center'>
+          <div className='w-full'>
+            <NavSection
+              title='General'
+              items={generalItems}
+              pathname={location.pathname}
+            />
+          </div>
         </div>
-      </div>
 
-      <div className='px-4 py-4'>
-        <Separator className='mb-4 bg-white/10' />
-        <Button
-          variant='ghost'
-          className='h-11 w-full justify-start gap-3 rounded-xl px-3 text-sm text-red-300 hover:bg-red-500/10 hover:text-red-200'
-          onClick={handleLogout}
-        >
-          <LogOut className='h-4 w-4' />
-          <span>Logout</span>
-        </Button>
+        <div className='px-2 pb-0 pt-4'>
+          <Separator className='mb-4 bg-white/10' />
+          <Button
+            variant='ghost'
+            className='h-11 w-full justify-start gap-3 rounded-xl px-3 text-sm text-red-300 hover:bg-red-500/10 hover:text-red-200'
+            onClick={handleLogout}
+          >
+            <LogOut className='h-4 w-4' />
+            <span>Logout</span>
+          </Button>
+        </div>
       </div>
     </aside>
   );

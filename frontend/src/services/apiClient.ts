@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '@/config/api';
+import { getToken } from '@/lib/auth-storage';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -9,7 +10,7 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = getToken();
 
   config.headers = config.headers ?? {};
 

@@ -115,13 +115,13 @@ export function RecordFormModal({
   };
 
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4'>
-      <div className='w-full max-w-lg rounded-xl border border-slate-200 bg-white shadow-xl'>
-        <div className='border-b border-slate-200 px-6 py-4'>
-          <h2 className='text-lg font-semibold text-slate-900'>
-            {mode === 'create' ? 'Add Record' : 'Edit Record'}
+    <div className='fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm'>
+      <div className='w-full max-w-lg rounded-2xl border border-white/10 bg-slate-900 shadow-2xl'>
+        <div className='border-b border-white/10 px-6 py-4'>
+          <h2 className='text-lg font-semibold text-white'>
+            {mode === 'create' ? 'Add record' : 'Edit record'}
           </h2>
-          <p className='mt-1 text-sm text-slate-500'>
+          <p className='mt-1 text-sm text-slate-400'>
             {mode === 'create'
               ? 'Create a new income, expense, or mileage record.'
               : 'Update this record.'}
@@ -131,15 +131,17 @@ export function RecordFormModal({
         <div className='space-y-4 px-6 py-5'>
           <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
             <div className='flex flex-col gap-1'>
-              <label className='text-sm font-medium text-slate-700'>Type</label>
+              <label className='text-sm font-medium text-slate-200'>Type</label>
               <select
-                className='h-10 rounded-md border border-slate-200 bg-white px-3 text-sm'
+                className='h-11 rounded-xl border border-white/10 bg-slate-800 px-3 text-sm text-slate-100 outline-none transition focus:border-slate-500'
                 value={form.type}
                 onChange={(e) =>
                   setForm((prev) => ({
                     ...prev,
                     type: e.target.value as RecordType,
                     categoryId: '',
+                    amount: e.target.value === 'mileage' ? '' : prev.amount,
+                    miles: e.target.value === 'mileage' ? prev.miles : '',
                   }))
                 }
               >
@@ -150,7 +152,7 @@ export function RecordFormModal({
             </div>
 
             <div className='flex flex-col gap-1'>
-              <label className='text-sm font-medium text-slate-700'>Date</label>
+              <label className='text-sm font-medium text-slate-200'>Date</label>
               <Input
                 type='date'
                 value={form.date}
@@ -160,13 +162,14 @@ export function RecordFormModal({
                     date: e.target.value,
                   }))
                 }
+                className='h-11 rounded-xl border-white/10 bg-slate-800 text-slate-100 placeholder:text-slate-400'
               />
             </div>
           </div>
 
           {form.type === 'mileage' ? (
             <div className='flex flex-col gap-1'>
-              <label className='text-sm font-medium text-slate-700'>
+              <label className='text-sm font-medium text-slate-200'>
                 Miles
               </label>
               <Input
@@ -180,11 +183,12 @@ export function RecordFormModal({
                   }))
                 }
                 placeholder='Enter miles'
+                className='h-11 rounded-xl border-white/10 bg-slate-800 text-slate-100 placeholder:text-slate-400'
               />
             </div>
           ) : (
             <div className='flex flex-col gap-1'>
-              <label className='text-sm font-medium text-slate-700'>
+              <label className='text-sm font-medium text-slate-200'>
                 Amount
               </label>
               <Input
@@ -198,16 +202,17 @@ export function RecordFormModal({
                   }))
                 }
                 placeholder='Enter amount'
+                className='h-11 rounded-xl border-white/10 bg-slate-800 text-slate-100 placeholder:text-slate-400'
               />
             </div>
           )}
 
           <div className='flex flex-col gap-1'>
-            <label className='text-sm font-medium text-slate-700'>
+            <label className='text-sm font-medium text-slate-200'>
               Category
             </label>
             <select
-              className='h-10 rounded-md border border-slate-200 bg-white px-3 text-sm'
+              className='h-11 rounded-xl border border-white/10 bg-slate-800 px-3 text-sm text-slate-100 outline-none transition focus:border-slate-500 disabled:opacity-60'
               value={form.categoryId}
               onChange={(e) =>
                 setForm((prev) => ({
@@ -235,22 +240,22 @@ export function RecordFormModal({
             </select>
 
             {categoriesError && (
-              <p className='text-sm text-red-600'>{categoriesError}</p>
+              <p className='text-sm text-red-400'>{categoriesError}</p>
             )}
 
             {!categoriesLoading &&
               !categoriesError &&
               categories.length === 0 && (
-                <p className='text-sm text-slate-500'>
+                <p className='text-sm text-slate-400'>
                   No categories available for this type yet.
                 </p>
               )}
           </div>
 
           <div className='flex flex-col gap-1'>
-            <label className='text-sm font-medium text-slate-700'>Notes</label>
+            <label className='text-sm font-medium text-slate-200'>Notes</label>
             <textarea
-              className='min-h-[96px] rounded-md border border-slate-200 px-3 py-2 text-sm'
+              className='min-h-[96px] rounded-xl border border-white/10 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 outline-none transition focus:border-slate-500'
               value={form.notes}
               onChange={(e) =>
                 setForm((prev) => ({
@@ -263,18 +268,19 @@ export function RecordFormModal({
           </div>
 
           {formError && (
-            <div className='rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700'>
+            <div className='rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300'>
               {formError}
             </div>
           )}
         </div>
 
-        <div className='flex justify-end gap-2 border-t border-slate-200 px-6 py-4'>
+        <div className='flex justify-end gap-2 border-t border-white/10 px-6 py-4'>
           <Button
             type='button'
             variant='outline'
             onClick={onClose}
             disabled={loading}
+            className='rounded-xl border-white/10 bg-slate-800 text-slate-100 hover:bg-slate-700 hover:text-white'
           >
             Cancel
           </Button>
@@ -282,12 +288,13 @@ export function RecordFormModal({
             type='button'
             onClick={handleSubmit}
             disabled={loading}
+            className='rounded-xl bg-slate-100 text-slate-900 hover:bg-white'
           >
             {loading
               ? 'Saving...'
               : mode === 'create'
-                ? 'Create Record'
-                : 'Save Changes'}
+                ? 'Create record'
+                : 'Save changes'}
           </Button>
         </div>
       </div>

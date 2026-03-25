@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { RecordsFilterBar } from '@/components/records/RecordsFilterBar';
 import { RecordsTable } from '@/components/records/RecordsTable';
 import { RecordFormModal } from '@/components/records/RecordFormModal';
+import { DeleteRecordDialog } from '@/components/records/DeleteRecordDialog';
 import { useRecords } from '@/hooks/useRecords';
 import {
   createRecord,
@@ -23,13 +24,19 @@ export default function RecordsPage() {
   const [order, setOrder] = useState<'asc' | 'desc'>('desc');
   const [limit, setLimit] = useState(10);
   const [offset, setOffset] = useState(0);
-
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedRecord, setSelectedRecord] = useState<RecordItem | null>(null);
   const [mutationLoading, setMutationLoading] = useState(false);
+
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const [recordPendingDelete, setRecordPendingDelete] =
+    useState<RecordItem | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const { data, loading, error } = useRecords(
     {
@@ -52,8 +59,34 @@ export default function RecordsPage() {
   const hasPreviousPage = currentPage > 1;
   const hasNextPage = currentPage < totalPages;
 
+  const hasActiveFilters = useMemo(() => {
+    return (
+      type !== 'all' ||
+      startDate !== '' ||
+      endDate !== '' ||
+      sort !== 'date' ||
+      order !== 'desc' ||
+      limit !== 10
+    );
+  }, [type, startDate, endDate, sort, order, limit]);
+
   const triggerRefresh = () => {
     setRefreshKey((prev) => prev + 1);
+  };
+
+  useEffect(() => {
+    if (!successMessage) return;
+
+    const timeout = window.setTimeout(() => {
+      setSuccessMessage(null);
+    }, 3000);
+
+    return () => window.clearTimeout(timeout);
+  }, [successMessage]);
+
+  const clearFeedback = () => {
+    setSuccessMessage(null);
+    setActionError(null);
   };
 
   const handleReset = () => {
@@ -64,6 +97,7 @@ export default function RecordsPage() {
     setOrder('desc');
     setLimit(10);
     setOffset(0);
+    clearFeedback();
   };
 
   const handlePreviousPage = () => {
@@ -77,12 +111,14 @@ export default function RecordsPage() {
   };
 
   const handleOpenCreate = () => {
+    clearFeedback();
     setModalMode('create');
     setSelectedRecord(null);
     setModalOpen(true);
   };
 
   const handleOpenEdit = (record: RecordItem) => {
+    clearFeedback();
     setModalMode('edit');
     setSelectedRecord(record);
     setModalOpen(true);
@@ -97,12 +133,16 @@ export default function RecordsPage() {
   const handleSubmitRecord = async (payload: RecordPayload) => {
     try {
       setMutationLoading(true);
+      setActionError(null);
+      setSuccessMessage(null);
 
       if (modalMode === 'create') {
         await createRecord(payload);
         setOffset(0);
+        setSuccessMessage('Record created successfully.');
       } else if (selectedRecord) {
         await updateRecord(selectedRecord.id, payload);
+        setSuccessMessage('Record updated successfully.');
       }
 
       setModalOpen(false);
@@ -110,31 +150,48 @@ export default function RecordsPage() {
       triggerRefresh();
     } catch (err) {
       console.error(err);
-      alert('Failed to save record.');
+      setActionError('Failed to save record. Please try again.');
     } finally {
       setMutationLoading(false);
     }
   };
 
-  const handleDeleteRecord = async (record: RecordItem) => {
-    const confirmed = window.confirm(
-      `Delete this ${record.type} record from ${record.date}?`,
-    );
+  const handleRequestDelete = (record: RecordItem) => {
+    clearFeedback();
+    setRecordPendingDelete(record);
+  };
 
-    if (!confirmed) return;
+  const handleCloseDeleteDialog = () => {
+    if (deleteLoading) return;
+    setRecordPendingDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!recordPendingDelete) return;
 
     try {
-      await deleteRecord(record.id);
+      setDeleteLoading(true);
+      setActionError(null);
+      setSuccessMessage(null);
+
+      await deleteRecord(recordPendingDelete.id);
 
       const willPageBecomeEmpty = records.length === 1 && offset > 0;
+
+      setRecordPendingDelete(null);
+
       if (willPageBecomeEmpty) {
         setOffset((prev) => Math.max(prev - limit, 0));
       } else {
         triggerRefresh();
       }
+
+      setSuccessMessage('Record deleted successfully.');
     } catch (err) {
       console.error(err);
-      alert('Failed to delete record.');
+      setActionError('Failed to delete record. Please try again.');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -153,10 +210,23 @@ export default function RecordsPage() {
         <Button
           type='button'
           onClick={handleOpenCreate}
+          className='rounded-xl bg-slate-900 text-slate-100 hover:bg-slate-800'
         >
-          Add Record
+          Add record
         </Button>
       </div>
+
+      {successMessage && (
+        <div className='mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700'>
+          {successMessage}
+        </div>
+      )}
+
+      {actionError && (
+        <div className='mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700'>
+          {actionError}
+        </div>
+      )}
 
       <RecordsFilterBar
         type={type}
@@ -212,12 +282,43 @@ export default function RecordsPage() {
         <div className='rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700'>
           {error}
         </div>
+      ) : records.length === 0 ? (
+        <div className='rounded-xl border border-slate-200 bg-white px-6 py-12 text-center shadow-sm'>
+          <h2 className='text-lg font-semibold text-slate-900'>
+            {hasActiveFilters ? 'No matching records found' : 'No records yet'}
+          </h2>
+
+          <p className='mt-2 text-sm text-slate-500'>
+            {hasActiveFilters
+              ? 'Try adjusting your filters or clear them to see more results.'
+              : 'Start by adding your first income, expense, or mileage record.'}
+          </p>
+
+          <div className='mt-5 flex items-center justify-center gap-3'>
+            {hasActiveFilters && (
+              <Button
+                type='button'
+                variant='outline'
+                onClick={handleReset}
+              >
+                Clear Filters
+              </Button>
+            )}
+
+            <Button
+              type='button'
+              onClick={handleOpenCreate}
+            >
+              Add Record
+            </Button>
+          </div>
+        </div>
       ) : (
         <>
           <RecordsTable
             records={records}
             onEdit={handleOpenEdit}
-            onDelete={handleDeleteRecord}
+            onDelete={handleRequestDelete}
           />
 
           <div className='mt-4 flex items-center justify-end gap-2'>
@@ -243,12 +344,25 @@ export default function RecordsPage() {
       )}
 
       <RecordFormModal
+        key={
+          modalMode === 'edit' && selectedRecord
+            ? `edit-${selectedRecord.id}`
+            : 'create'
+        }
         open={modalOpen}
         mode={modalMode}
         record={selectedRecord}
         loading={mutationLoading}
         onClose={handleCloseModal}
         onSubmit={handleSubmitRecord}
+      />
+
+      <DeleteRecordDialog
+        open={Boolean(recordPendingDelete)}
+        record={recordPendingDelete}
+        loading={deleteLoading}
+        onClose={handleCloseDeleteDialog}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );
